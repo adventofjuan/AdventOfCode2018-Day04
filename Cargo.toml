@@ -1,0 +1,9 @@
+[package]
+name = "advent04"
+version = "0.1.0"
+authors = ["Bastian Koppelmann <kbastian@mail.uni-paderborn.de>"]
+edition = "2018"
+
+[dependencies]
+chrono = "0.4"
+indexmap = "1.0.2"
