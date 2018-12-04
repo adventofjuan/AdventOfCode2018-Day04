@@ -41,39 +41,39 @@ fn read_file_to_vec(file: BufReader<&File>)
     res
 }
 
-fn part01(values: &mut IndexMap<NaiveDateTime, Action>) {
-    let mut sleep_times = IndexMap::new();
+fn calculate_sleep_times(values: &mut IndexMap<NaiveDateTime, Action>)
+    -> IndexMap<i32, [i32; 60]> {
 
+    let mut sleep_times = IndexMap::new();
     let mut cur_guard = 0;
     let mut asl_start = 0;
-
-    let mut max_minutes_sum= 0;
-    let mut max_id = 0;
 
     values.sort_keys();
 
     for (time, event) in values.iter() {
-        print!("[{}] ", time);
         match event {
             Action::BeginShift(id) => {
-                print!("Guard #{} starts", *id);
                 cur_guard = *id;
             },
             Action::WakeUp => {
-                print!("Wake up");
                 let c_sleep = sleep_times.entry(cur_guard).or_insert([0;60]);
                 for min in asl_start..time.time().minute() {
                     c_sleep[min as usize] += 1;
                 }
             },
             Action::FallAsleep => {
-                print!("Fall asleep");
                 asl_start = time.time().minute();
             },
             Action::Error => println!("Oop"),
         };
-        print!("\n");
     }
+    sleep_times
+}
+
+fn part01(mut values: &mut IndexMap<NaiveDateTime, Action>) {
+    let sleep_times = calculate_sleep_times(&mut values);
+    let mut max_minutes_sum= 0;
+    let mut max_id = 0;
 
     for (id, min_array) in sleep_times.iter() {
         let minutes_sum:i32 = min_array.iter().sum();
@@ -96,10 +96,34 @@ fn part01(values: &mut IndexMap<NaiveDateTime, Action>) {
     println!("Part1 result = {}", max_id * max_minute);
 }
 
+fn part02(mut values: &mut IndexMap<NaiveDateTime, Action>) {
+    let sleep_times = calculate_sleep_times(&mut values);
+    let mut max_minute = 0;
+    let mut max_minute_val = 0;
+    let mut max_id = 0;
+
+    for (id, minutes_arr) in sleep_times.iter() {
+        for i in 0..minutes_arr.len() {
+            if minutes_arr[i] > max_minute_val {
+                max_minute = i as i32;
+                max_id = *id;
+                max_minute_val = minutes_arr[i];
+            }
+        }
+    }
+
+    println!("Guard #{} asleep {} times on minute {}", max_id,
+                                                       max_minute_val,
+                                                       max_minute);
+    println!("Part02 result = {}", max_id * max_minute);
+}
+
+
 fn main() {
     let f = File::open("input.txt").expect("file not found");
     let file = BufReader::new(&f);
     let mut values = read_file_to_vec(file);
 
     part01(&mut values);
+    part02(&mut values);
 }
